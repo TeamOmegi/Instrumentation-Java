@@ -116,6 +116,8 @@ public class OmegiTraceSpanExporter implements SpanExporter {
          */
 
 		int spanNumber = 1;
+		JsonObject spanData = new JsonObject();
+
 		for (SpanData span : spans) {
 			JsonObject jsonData = new JsonObject();
 			jsonData.addProperty("name", span.getName());
@@ -131,16 +133,17 @@ public class OmegiTraceSpanExporter implements SpanExporter {
 				traceExitTime = OmegiUtil.getFormattedTime(span.getEndEpochNanos());
 			}
 
-			outerJson.add("detailed-span" + spanNumber++, jsonData);
+			spanData.add("span" + spanNumber++, jsonData);
 		}
 
+		outerJson.add("spans", spanData);
 		outerJson.addProperty("trace enter-time", traceEnterTime);
 		outerJson.addProperty("trace exit-time", traceExitTime);
 
         /*
         카프카 전송
          */
-		ProducerRecord<String, byte[]> record = new ProducerRecord<>("test",
+		ProducerRecord<String, byte[]> record = new ProducerRecord<>("error",
 			outerJson.toString().getBytes(StandardCharsets.UTF_8));
 		kafkaProducer.send(record);
 		return CompletableResultCode.ofSuccess();
