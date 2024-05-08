@@ -14,6 +14,7 @@ public class OmegiUtil {
 
 	private static final String OMEGI_TOKEN_PROPERTY = "otel.exporter.omegi.token";
 	private static final String SERVICE_NAME = "otel.service.name";
+	private static final String KAFKA_SERVER = "otel.kafka.server";
 
 	public static String getToken() {
 		String omegiToken = System.getProperty(OMEGI_TOKEN_PROPERTY);
@@ -21,6 +22,15 @@ public class OmegiUtil {
 			return "please set otel.exporter.omegi.token";
 		} else {
 			return omegiToken;
+		}
+	}
+
+	public static String getKafkaServer() {
+		String kafkaServer = System.getProperty(KAFKA_SERVER);
+		if (kafkaServer == null || kafkaServer.isEmpty()) {
+			return "please set otel.kafka.server";
+		} else {
+			return kafkaServer;
 		}
 	}
 

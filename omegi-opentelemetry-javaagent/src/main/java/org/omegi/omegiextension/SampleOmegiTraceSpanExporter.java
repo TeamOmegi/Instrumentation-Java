@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -44,7 +45,7 @@ public class SampleOmegiTraceSpanExporter implements SpanExporter {
 
 	private static KafkaProducer<String, byte[]> createKafkaProducer() {
 		Properties properties = new Properties();
-		properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
+		properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, OmegiUtil.getKafkaServer());
 		properties.put(ProducerConfig.ACKS_CONFIG, "all");
 		properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
 		properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
@@ -98,6 +99,7 @@ public class SampleOmegiTraceSpanExporter implements SpanExporter {
 		ProducerRecord<String, byte[]> record = new ProducerRecord<>("flow",
 			outerJson.toString().getBytes(StandardCharsets.UTF_8));
 		kafkaProducer.send(record);
+
 		return CompletableResultCode.ofSuccess();
 	}
 

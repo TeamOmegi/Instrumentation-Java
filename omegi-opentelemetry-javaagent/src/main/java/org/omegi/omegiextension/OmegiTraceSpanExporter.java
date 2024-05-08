@@ -17,6 +17,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,7 +44,7 @@ public class OmegiTraceSpanExporter implements SpanExporter {
 
 	private static KafkaProducer<String, byte[]> createKafkaProducer() {
 		Properties properties = new Properties();
-		properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
+		properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, OmegiUtil.getKafkaServer());
 		properties.put(ProducerConfig.ACKS_CONFIG, "all");
 		properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
 		properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
@@ -67,6 +68,7 @@ public class OmegiTraceSpanExporter implements SpanExporter {
 		JsonObject outerJson = new JsonObject();
 		String traceEnterTime = null;
 		String traceExitTime = null;
+		String firstParentId = null;
 
 		SpanData firstSpan = spans.stream().findFirst().orElse(null);
 
@@ -116,7 +118,7 @@ public class OmegiTraceSpanExporter implements SpanExporter {
          */
 
 		int spanNumber = 1;
-		JsonObject spanData = new JsonObject();
+		List<JsonObject> spanList = new ArrayList<>();
 
 		for (SpanData span : spans) {
 			JsonObject jsonData = new JsonObject();
@@ -131,12 +133,14 @@ public class OmegiTraceSpanExporter implements SpanExporter {
 			if (spans.size() == spanNumber) {
 				traceEnterTime = OmegiUtil.getFormattedTime(span.getStartEpochNanos());
 				traceExitTime = OmegiUtil.getFormattedTime(span.getEndEpochNanos());
+				firstParentId = span.getParentSpanId();
 			}
 
-			spanData.add("span" + spanNumber++, jsonData);
+			spanList.add(jsonData);
 		}
 
-		outerJson.add("spans", spanData);
+		outerJson.addProperty("firstParentId", firstParentId);
+		outerJson.addProperty("spans", spanList.toString());
 		outerJson.addProperty("trace enter-time", traceEnterTime);
 		outerJson.addProperty("trace exit-time", traceExitTime);
 
