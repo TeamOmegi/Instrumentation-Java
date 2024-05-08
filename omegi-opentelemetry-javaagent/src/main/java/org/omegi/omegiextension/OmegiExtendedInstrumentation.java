@@ -44,8 +44,6 @@ public class OmegiExtendedInstrumentation implements TypeInstrumentation {
                     method.getDeclaringClass().getName() + "." + method.getName();
             span = tracer.spanBuilder(methodName).startSpan();
 
-            span.setAttribute("name", methodName);
-
             String[] argArr = new String[args.length];
             Parameter[] parameterArr = method.getParameters();
             for (int i = 0; i < args.length; i++) {

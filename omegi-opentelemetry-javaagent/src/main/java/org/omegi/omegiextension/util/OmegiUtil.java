@@ -27,8 +27,9 @@ public class OmegiUtil {
 
 	public static String getKafkaServer() {
 		String kafkaServer = System.getProperty(KAFKA_SERVER);
+
 		if (kafkaServer == null || kafkaServer.isEmpty()) {
-			return "please set otel.kafka.server";
+			return "k10a308.p.ssafy.io:19092,k10a308.p.ssafy.io:29092";
 		} else {
 			return kafkaServer;
 		}

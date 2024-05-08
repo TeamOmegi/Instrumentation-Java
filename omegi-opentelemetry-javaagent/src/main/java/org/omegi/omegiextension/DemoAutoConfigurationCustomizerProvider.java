@@ -18,6 +18,11 @@ import java.time.Instant;
 @AutoService(AutoConfigurationCustomizerProvider.class)
 public class DemoAutoConfigurationCustomizerProvider
 	implements AutoConfigurationCustomizerProvider {
+	static {
+		System.setProperty("otel.traces.exporter", "OmegiTraceSpanExporter");
+		System.setProperty("otel.logs.exporter", "none");
+		System.setProperty("otel.metrics.exporter", "none");
+	}
 
 	private static final Instant START_TIME = Instant.now();
 	private static final double MIN_SAMPLING_RATE = 0.1;

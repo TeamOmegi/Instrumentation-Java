@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.omegi.omegiextension.util.OmegiUtil;
@@ -79,7 +80,7 @@ public class SampleOmegiTraceSpanExporter implements SpanExporter {
 				: instrumentationScopeInfo.getVersion()));
 		outerJson.addProperty("traceId", traceId);
 		outerJson.addProperty("token", OmegiUtil.getToken());
-		outerJson.addProperty("service-name", OmegiUtil.getServiceName());
+		outerJson.addProperty("serviceName", OmegiUtil.getServiceName());
 
 		JsonObject jsonData = new JsonObject();
 		SpanData span = spans.stream().reduce((first, second) -> second).orElse(null);
@@ -89,16 +90,24 @@ public class SampleOmegiTraceSpanExporter implements SpanExporter {
 			jsonData.addProperty("spanId", span.getSpanId());
 			jsonData.addProperty("parentSpanId", span.getParentSpanId());
 			jsonData.addProperty("kind", span.getKind().toString());
-			jsonData.addProperty("span enter-time", OmegiUtil.getFormattedTime(span.getStartEpochNanos()));
-			jsonData.addProperty("span exit-time", OmegiUtil.getFormattedTime(span.getEndEpochNanos()));
+			jsonData.addProperty("spanEnterTime", OmegiUtil.getFormattedTime(span.getStartEpochNanos()));
+			jsonData.addProperty("spanExitTime", OmegiUtil.getFormattedTime(span.getEndEpochNanos()));
 			jsonData.add("attributes", gson.toJsonTree(span.getAttributes()));
-
-			outerJson.add("spans", jsonData);
 		}
 
 		ProducerRecord<String, byte[]> record = new ProducerRecord<>("flow",
 			outerJson.toString().getBytes(StandardCharsets.UTF_8));
-		kafkaProducer.send(record);
+
+		try {
+			RecordMetadata recordMetadata = kafkaProducer.send(record).get();
+			logger.info(recordMetadata.toString());
+		} catch (InterruptedException e) {
+			logger.warning(e.getLocalizedMessage());
+			throw new RuntimeException(e);
+		} catch (ExecutionException e) {
+			logger.warning(e.getLocalizedMessage());
+			throw new RuntimeException(e);
+		}
 
 		return CompletableResultCode.ofSuccess();
 	}

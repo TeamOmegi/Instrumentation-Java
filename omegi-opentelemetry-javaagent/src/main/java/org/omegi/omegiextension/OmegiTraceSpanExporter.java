@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.omegi.omegiextension.util.OmegiUtil;
@@ -57,6 +58,7 @@ public class OmegiTraceSpanExporter implements SpanExporter {
 
 	@Override
 	public CompletableResultCode export(Collection<SpanData> spans) {
+		logger.info("Enter Omegi Exporter");
 		if (isShutdown.get()) {
 			return CompletableResultCode.ofFailure();
 		}
@@ -66,9 +68,6 @@ public class OmegiTraceSpanExporter implements SpanExporter {
         에러가 아니면 종료
          */
 		JsonObject outerJson = new JsonObject();
-		String traceEnterTime = null;
-		String traceExitTime = null;
-		String firstParentId = null;
 
 		SpanData firstSpan = spans.stream().findFirst().orElse(null);
 
@@ -85,7 +84,7 @@ public class OmegiTraceSpanExporter implements SpanExporter {
 						: instrumentationScopeInfo.getVersion()));
 				outerJson.addProperty("traceId", traceId);
 				outerJson.addProperty("token", OmegiUtil.getToken());
-				outerJson.addProperty("service-name", OmegiUtil.getServiceName());
+				outerJson.addProperty("serviceName", OmegiUtil.getServiceName());
 
 				JsonObject exceptionJson = new JsonObject();
 
@@ -126,30 +125,30 @@ public class OmegiTraceSpanExporter implements SpanExporter {
 			jsonData.addProperty("spanId", span.getSpanId());
 			jsonData.addProperty("parentSpanId", span.getParentSpanId());
 			jsonData.addProperty("kind", span.getKind().toString());
-			jsonData.addProperty("span enter-time", OmegiUtil.getFormattedTime(span.getStartEpochNanos()));
-			jsonData.addProperty("span exit-time", OmegiUtil.getFormattedTime(span.getEndEpochNanos()));
+			jsonData.addProperty("spanEnterTime", OmegiUtil.getFormattedTime(span.getStartEpochNanos()));
+			jsonData.addProperty("spanExitTime", OmegiUtil.getFormattedTime(span.getEndEpochNanos()));
 			jsonData.add("attributes", gson.toJsonTree(span.getAttributes()));
-
-			if (spans.size() == spanNumber) {
-				traceEnterTime = OmegiUtil.getFormattedTime(span.getStartEpochNanos());
-				traceExitTime = OmegiUtil.getFormattedTime(span.getEndEpochNanos());
-				firstParentId = span.getParentSpanId();
-			}
 
 			spanList.add(jsonData);
 		}
 
-		outerJson.addProperty("firstParentId", firstParentId);
-		outerJson.addProperty("spans", spanList.toString());
-		outerJson.addProperty("trace enter-time", traceEnterTime);
-		outerJson.addProperty("trace exit-time", traceExitTime);
+		outerJson.add("spans", gson.toJsonTree(spanList));
 
         /*
         카프카 전송
          */
 		ProducerRecord<String, byte[]> record = new ProducerRecord<>("error",
 			outerJson.toString().getBytes(StandardCharsets.UTF_8));
-		kafkaProducer.send(record);
+		try {
+			RecordMetadata recordMetadata = kafkaProducer.send(record).get();
+			logger.info(recordMetadata.toString());
+		} catch (InterruptedException e) {
+			logger.warning(e.getLocalizedMessage());
+			throw new RuntimeException(e);
+		} catch (ExecutionException e) {
+			logger.warning(e.getLocalizedMessage());
+			throw new RuntimeException(e);
+		}
 		return CompletableResultCode.ofSuccess();
 	}
 
