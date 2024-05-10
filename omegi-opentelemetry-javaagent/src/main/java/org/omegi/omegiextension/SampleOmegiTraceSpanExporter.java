@@ -85,15 +85,17 @@ public class SampleOmegiTraceSpanExporter implements SpanExporter {
 		JsonObject jsonData = new JsonObject();
 		SpanData span = spans.stream().reduce((first, second) -> second).orElse(null);
 
-		if (span != null) {
-			jsonData.addProperty("name", span.getName());
-			jsonData.addProperty("spanId", span.getSpanId());
-			jsonData.addProperty("parentSpanId", span.getParentSpanId());
-			jsonData.addProperty("kind", span.getKind().toString());
-			jsonData.addProperty("spanEnterTime", OmegiUtil.getFormattedTime(span.getStartEpochNanos()));
-			jsonData.addProperty("spanExitTime", OmegiUtil.getFormattedTime(span.getEndEpochNanos()));
-			jsonData.add("attributes", gson.toJsonTree(span.getAttributes()));
+		if (span == null) {
+			span = firstSpan;
 		}
+
+		jsonData.addProperty("name", span.getName());
+		jsonData.addProperty("parentSpanId", span.getParentSpanId());
+		jsonData.addProperty("spanId", span.getSpanId());
+		jsonData.addProperty("kind", span.getKind().toString());
+		jsonData.addProperty("spanEnterTime", OmegiUtil.getFormattedTime(span.getStartEpochNanos()));
+		jsonData.addProperty("spanExitTime", OmegiUtil.getFormattedTime(span.getEndEpochNanos()));
+		jsonData.add("attributes", gson.toJsonTree(span.getAttributes()));
 
 		ProducerRecord<String, byte[]> record = new ProducerRecord<>("flow",
 			outerJson.toString().getBytes(StandardCharsets.UTF_8));
