@@ -82,23 +82,21 @@ public class SampleOmegiTraceSpanExporter implements SpanExporter {
 		outerJson.addProperty("token", OmegiUtil.getToken());
 		outerJson.addProperty("serviceName", OmegiUtil.getServiceName());
 
-		JsonObject jsonData = new JsonObject();
 		SpanData span = spans.stream().reduce((first, second) -> second).orElse(null);
 
 		if (span == null) {
 			span = firstSpan;
 		}
 
-		jsonData.addProperty("name", span.getName());
-		jsonData.addProperty("parentSpanId", span.getParentSpanId());
-		jsonData.addProperty("spanId", span.getSpanId());
-		jsonData.addProperty("kind", span.getKind().toString());
-		jsonData.addProperty("spanEnterTime", OmegiUtil.getFormattedTime(span.getStartEpochNanos()));
-		jsonData.addProperty("spanExitTime", OmegiUtil.getFormattedTime(span.getEndEpochNanos()));
-		jsonData.add("attributes", gson.toJsonTree(span.getAttributes()));
+		outerJson.addProperty("parentSpanId", span.getParentSpanId());
+		outerJson.addProperty("spanId", span.getSpanId());
+		outerJson.addProperty("spanEnterTime", OmegiUtil.getFormattedTime(span.getStartEpochNanos()));
+		outerJson.addProperty("spanExitTime", OmegiUtil.getFormattedTime(span.getEndEpochNanos()));
 
 		ProducerRecord<String, byte[]> record = new ProducerRecord<>("flow",
 			outerJson.toString().getBytes(StandardCharsets.UTF_8));
+
+		logger.info(outerJson.toString());
 
 		try {
 			RecordMetadata recordMetadata = kafkaProducer.send(record).get();

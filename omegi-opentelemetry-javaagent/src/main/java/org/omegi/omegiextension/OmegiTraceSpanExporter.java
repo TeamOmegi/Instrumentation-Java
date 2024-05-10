@@ -116,7 +116,6 @@ public class OmegiTraceSpanExporter implements SpanExporter {
         상세 span 정보
          */
 
-		int spanNumber = 1;
 		List<JsonObject> spanList = new ArrayList<>();
 
 		for (SpanData span : spans) {
