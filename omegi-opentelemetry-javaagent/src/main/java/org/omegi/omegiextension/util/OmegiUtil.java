@@ -29,7 +29,7 @@ public class OmegiUtil {
 		String kafkaServer = System.getProperty(KAFKA_SERVER);
 
 		if (kafkaServer == null || kafkaServer.isEmpty()) {
-			return "k10a308.p.ssafy.io:19092,k10a308.p.ssafy.io:29092";
+			return "localhost:9092";
 		} else {
 			return kafkaServer;
 		}
