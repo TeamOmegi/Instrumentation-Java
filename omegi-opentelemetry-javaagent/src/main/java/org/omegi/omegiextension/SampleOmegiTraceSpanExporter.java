@@ -74,7 +74,7 @@ public class SampleOmegiTraceSpanExporter implements SpanExporter {
 
 			String traceId = firstSpan.getTraceId();
 			int hashCode = traceId.hashCode();
-			if (hashCode % 10 != 0) {
+			if (hashCode % 5 != 0) {
 				return CompletableResultCode.ofSuccess();
 			}
 		}
