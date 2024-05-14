@@ -71,6 +71,12 @@ public class SampleOmegiTraceSpanExporter implements SpanExporter {
 			if (statusCode == StatusCode.ERROR) {
 				return CompletableResultCode.ofSuccess();
 			}
+
+			String traceId = firstSpan.getTraceId();
+			int hashCode = traceId.hashCode();
+			if (hashCode % 10 != 0) {
+				return CompletableResultCode.ofSuccess();
+			}
 		}
 
 		InstrumentationScopeInfo instrumentationScopeInfo = firstSpan.getInstrumentationScopeInfo();
