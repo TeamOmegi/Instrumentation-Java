@@ -41,6 +41,7 @@ public class DemoAutoConfigurationCustomizerProvider
 		SdkTracerProviderBuilder sdkTracerProviderBuilder = SdkTracerProvider.builder()
 			.setClock(Clock.getDefault())
 			.setResource(Resource.getDefault())
+			.setIdGenerator(new DecimalIdGenerator())
 			.setSpanLimits(SpanLimits.getDefault());
 
 		String property = OmegiUtil.getOmegiExporterKind();
