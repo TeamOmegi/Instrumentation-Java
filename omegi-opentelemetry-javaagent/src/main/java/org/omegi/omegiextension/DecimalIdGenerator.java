@@ -7,17 +7,23 @@ import java.math.BigInteger;
 
 public class DecimalIdGenerator implements IdGenerator {
     private static final SecureRandom random = new SecureRandom();
+
     @Override
     public String generateTraceId() {
-        return generateDecimalId(32);
+        return generateDecimalId(38);
     }
 
     @Override
     public String generateSpanId() {
-        return generateDecimalId(16);
+        return generateDecimalId(20);
     }
 
     private String generateDecimalId(int length) {
-        return new BigInteger(length, random).toString();
+        BigInteger maxValue = BigInteger.TEN.pow(length).subtract(BigInteger.ONE);
+        BigInteger randomValue;
+        do {
+            randomValue = new BigInteger(maxValue.bitLength(), random);
+        } while (randomValue.compareTo(maxValue) >= 0);
+        return String.format("%0" + length + "d", randomValue);
     }
 }
