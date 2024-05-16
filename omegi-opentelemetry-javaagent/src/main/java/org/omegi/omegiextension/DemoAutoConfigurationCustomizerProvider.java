@@ -40,7 +40,7 @@ public class DemoAutoConfigurationCustomizerProvider
 
 		SdkTracerProviderBuilder sdkTracerProviderBuilder = SdkTracerProvider.builder()
 			.setClock(Clock.getDefault())
-			.setIdGenerator(IdGenerator.random())
+			.setIdGenerator(new DecimalIdGenerator())
 			.setResource(Resource.getDefault())
 			.setSpanLimits(SpanLimits.getDefault());
 
