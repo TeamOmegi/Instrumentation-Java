@@ -16,53 +16,53 @@ import org.omegi.omegiextension.util.OmegiUtil;
 
 @AutoService(AutoConfigurationCustomizerProvider.class)
 public class DemoAutoConfigurationCustomizerProvider
-	implements AutoConfigurationCustomizerProvider {
+        implements AutoConfigurationCustomizerProvider {
 
-	static {
-		System.setProperty("otel.traces.exporter", "OmegiTraceSpanExporter");
-		System.setProperty("otel.logs.exporter", "none");
-		System.setProperty("otel.metrics.exporter", "none");
-	}
+    static {
+        System.setProperty("otel.traces.exporter", "OmegiTraceSpanExporter");
+        System.setProperty("otel.logs.exporter", "none");
+        System.setProperty("otel.metrics.exporter", "none");
+    }
 
-	@Override
-	public void customize(AutoConfigurationCustomizer autoConfiguration) {
-		autoConfiguration
-			.addTracerProviderCustomizer(this::combinedTracerProviderCustomizer);
-	}
+    @Override
+    public void customize(AutoConfigurationCustomizer autoConfiguration) {
+        autoConfiguration
+                .addTracerProviderCustomizer(this::combinedTracerProviderCustomizer);
+    }
 
-	private SdkTracerProviderBuilder combinedTracerProviderCustomizer(
-		SdkTracerProviderBuilder tracerProvider, ConfigProperties config) {
-		return configureSdkTracerProvider(sampleConfigureSdkTracerProvider(tracerProvider, config), config);
-	}
+    private SdkTracerProviderBuilder combinedTracerProviderCustomizer(
+            SdkTracerProviderBuilder tracerProvider, ConfigProperties config) {
+        return configureSdkTracerProvider(sampleConfigureSdkTracerProvider(tracerProvider, config), config);
+    }
 
-	private SdkTracerProviderBuilder sampleConfigureSdkTracerProvider(
-		SdkTracerProviderBuilder tracerProvider, ConfigProperties config) {
+    private SdkTracerProviderBuilder sampleConfigureSdkTracerProvider(
+            SdkTracerProviderBuilder tracerProvider, ConfigProperties config) {
 
-		SdkTracerProviderBuilder sdkTracerProviderBuilder = SdkTracerProvider.builder()
-			.setClock(Clock.getDefault())
-			.setResource(Resource.getDefault())
-			.setIdGenerator(new DecimalIdGenerator())
-			.setSpanLimits(SpanLimits.getDefault());
+        SdkTracerProviderBuilder sdkTracerProviderBuilder = SdkTracerProvider.builder()
+                .setClock(Clock.getDefault())
+                .setResource(Resource.getDefault())
+                .setIdGenerator(IdGenerator.random())
+                .setSpanLimits(SpanLimits.getDefault());
 
-		String property = OmegiUtil.getOmegiExporterKind();
-		if (property.equals("kafka")) {
-			return sdkTracerProviderBuilder
-				.addSpanProcessor(BatchSpanProcessor.builder(new SampleOmegiTraceSpanExporter()).build());
-		} else {
-			return sdkTracerProviderBuilder
-				.addSpanProcessor(BatchSpanProcessor.builder(new LoggingSpanExporter()).build());
-		}
-	}
+        String property = OmegiUtil.getOmegiExporterKind();
+        if (property.equals("kafka")) {
+            return sdkTracerProviderBuilder
+                    .addSpanProcessor(BatchSpanProcessor.builder(new SampleOmegiTraceSpanExporter()).build());
+        } else {
+            return sdkTracerProviderBuilder
+                    .addSpanProcessor(BatchSpanProcessor.builder(new LoggingSpanExporter()).build());
+        }
+    }
 
-	private SdkTracerProviderBuilder configureSdkTracerProvider(
-		SdkTracerProviderBuilder tracerProvider, ConfigProperties config) {
-		String property = OmegiUtil.getOmegiExporterKind();
-		if (property.equals("kafka")) {
-			return tracerProvider
-				.addSpanProcessor(BatchSpanProcessor.builder(new OmegiTraceSpanExporter()).build());
-		} else {
-			return tracerProvider
-				.addSpanProcessor(BatchSpanProcessor.builder(new LoggingSpanExporter()).build());
-		}
-	}
+    private SdkTracerProviderBuilder configureSdkTracerProvider(
+            SdkTracerProviderBuilder tracerProvider, ConfigProperties config) {
+        String property = OmegiUtil.getOmegiExporterKind();
+        if (property.equals("kafka")) {
+            return tracerProvider
+                    .addSpanProcessor(BatchSpanProcessor.builder(new OmegiTraceSpanExporter()).build());
+        } else {
+            return tracerProvider
+                    .addSpanProcessor(BatchSpanProcessor.builder(new LoggingSpanExporter()).build());
+        }
+    }
 }
