@@ -1,6 +1,7 @@
 package org.omegi.omegiextension;
 
 import com.google.auto.service.AutoService;
+import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.exporter.logging.LoggingSpanExporter;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizer;
 import io.opentelemetry.sdk.autoconfigure.spi.AutoConfigurationCustomizerProvider;
@@ -27,6 +28,7 @@ public class DemoAutoConfigurationCustomizerProvider
     @Override
     public void customize(AutoConfigurationCustomizer autoConfiguration) {
         autoConfiguration
+                .addPropagatorCustomizer((textMapPropagator, configProperties) -> W3CTraceContextPropagator.getInstance())
                 .addTracerProviderCustomizer(this::combinedTracerProviderCustomizer);
     }
 
