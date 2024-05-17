@@ -35,7 +35,6 @@ Apache Kafka가 설치 및 구성되어 있어야 합니다 (Kafka 내보내기�
 
 최신 버전의 omegi-opentelemetry-javaagent.jar 파일을 다운로드하세요.
 
-https://lab.ssafy.com/s10-final/S10P31A308/omegi-opentelemetry-instrumentation/Instrumentation-Java/releases/latest/download/opentelemetry-javaagent.jar
 
 애플리케이션의 실행 명령에 다음 JVM 옵션을 추가하세요:
 ```
